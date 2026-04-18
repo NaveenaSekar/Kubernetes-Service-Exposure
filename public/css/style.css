@@ -445,6 +445,24 @@ select:focus {
   height: 280px;
 }
 
+.chart-wrap h4 {
+  margin: 0 0 0.4rem;
+  color: #334155;
+  font-size: 0.92rem;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.filter-list {
+  margin-top: 0.6rem;
+  max-height: 260px;
+  overflow: auto;
+}
+
 .task-actions {
   display: flex;
   align-items: center;

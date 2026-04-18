@@ -43,8 +43,15 @@
 
       <section class="card">
         <h3>Task Status Analytics</h3>
-        <div class="chart-wrap">
-          <canvas id="task-status-chart" aria-label="Task status analytics chart"></canvas>
+        <div class="chart-grid">
+          <div class="chart-wrap">
+            <h4>Completed Tasks</h4>
+            <canvas id="completed-chart" aria-label="Completed tasks analytics chart"></canvas>
+          </div>
+          <div class="chart-wrap">
+            <h4>Pending Tasks</h4>
+            <canvas id="pending-chart" aria-label="Pending tasks analytics chart"></canvas>
+          </div>
         </div>
       </section>
 
@@ -87,6 +94,8 @@
             <label for="search-task">Search Task</label>
             <input id="search-task" type="text" placeholder="Search by title..." />
           </div>
+          <div id="filtered-task-list" class="task-list filter-list"></div>
+          <p id="filtered-empty-state" class="empty-state">No tasks found for this filter.</p>
         </section>
       </section>
 
