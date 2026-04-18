@@ -1,0 +1,38 @@
+# WHAT: Declares how many copies (Pods) of your app to run and which container image to use.
+# WHY: Deployments keep your app running, restart failed Pods, and roll out updates safely.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-k8s
+  labels:
+    app: hello-k8s
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello-k8s
+  template:
+    metadata:
+      labels:
+        app: hello-k8s
+    spec:
+      containers:
+        - name: hello-k8s
+          # Replace YOUR_DOCKERHUB_USERNAME with your Docker Hub username before applying.
+          image: YOUR_DOCKERHUB_USERNAME/hello-k8s:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10

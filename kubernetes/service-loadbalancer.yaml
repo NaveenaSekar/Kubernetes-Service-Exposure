@@ -1,0 +1,17 @@
+# WHAT: Same app exposure as NodePort, but cloud controllers provision an external IP/DNS.
+# WHY: On AWS/GKE/Azure this is the usual way to get a public URL without node IP gymnastics.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-k8s
+  labels:
+    app: hello-k8s
+spec:
+  type: LoadBalancer
+  selector:
+    app: hello-k8s
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080

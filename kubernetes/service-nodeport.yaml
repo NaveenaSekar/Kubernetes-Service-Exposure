@@ -1,0 +1,19 @@
+# WHAT: A Service gives Pods a stable network identity and can expose them outside the cluster.
+# WHY: NodePort works everywhere (Minikube, kind, bare metal). Each node listens on the same high port.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-k8s
+  labels:
+    app: hello-k8s
+spec:
+  type: NodePort
+  selector:
+    app: hello-k8s
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      # Optional: pin a port in 30000-32767 for predictable URLs in labs.
+      nodePort: 30080

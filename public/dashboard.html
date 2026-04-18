@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Task Tracker - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body data-page="dashboard">
+    <div id="navbar-root"></div>
+
+    <main class="page-wrap dashboard-wrap">
+      <section class="card welcome-card">
+        <h2>Welcome, <span id="welcome-name">Student</span></h2>
+      </section>
+
+      <section class="stats-grid">
+        <article class="card stat-card">
+          <h4>Total Tasks</h4>
+          <p id="total-count">0</p>
+        </article>
+        <article class="card stat-card success">
+          <h4>Completed Tasks</h4>
+          <p id="completed-count">0</p>
+        </article>
+        <article class="card stat-card warning">
+          <h4>Pending Tasks</h4>
+          <p id="pending-count">0</p>
+        </article>
+        <article class="card stat-card">
+          <h4>Progress Percentage</h4>
+          <p id="progress-count">0%</p>
+        </article>
+      </section>
+
+      <section class="card progress-card">
+        <h3>Task Completion Progress</h3>
+        <div class="progress-bar-bg">
+          <div id="progress-bar" class="progress-bar-fill">0%</div>
+        </div>
+      </section>
+
+      <section class="grid-2">
+        <section class="card">
+          <h3>Add Task</h3>
+          <form id="task-form" novalidate>
+            <div class="field">
+              <label for="task-title">Task Title</label>
+              <input id="task-title" type="text" placeholder="e.g., Maths Assignment 2" />
+              <small id="task-title-error" class="error-text"></small>
+            </div>
+            <div class="field">
+              <label for="task-type">Task Type</label>
+              <select id="task-type">
+                <option value="">Select type</option>
+                <option value="Assignment">Assignment</option>
+                <option value="Exam">Exam</option>
+                <option value="Project">Project</option>
+              </select>
+              <small id="task-type-error" class="error-text"></small>
+            </div>
+            <div class="field">
+              <label for="task-due-date">Due Date</label>
+              <input id="task-due-date" type="date" />
+              <small id="task-date-error" class="error-text"></small>
+            </div>
+            <button class="btn btn-primary full" type="submit">Add Task</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h3>Task Filters</h3>
+          <div class="filter-row">
+            <button class="btn btn-filter active" data-filter="all" type="button">All Tasks</button>
+            <button class="btn btn-filter" data-filter="completed" type="button">Completed</button>
+            <button class="btn btn-filter" data-filter="pending" type="button">Pending</button>
+          </div>
+          <div class="field search-field">
+            <label for="search-task">Search Task</label>
+            <input id="search-task" type="text" placeholder="Search by title..." />
+          </div>
+        </section>
+      </section>
+
+      <section class="card">
+        <h3>Task List</h3>
+        <div id="task-list" class="task-list"></div>
+        <p id="empty-state" class="empty-state">No tasks found.</p>
+      </section>
+    </main>
+
+    <script src="/js/app.js"></script>
+  </body>
+</html>
