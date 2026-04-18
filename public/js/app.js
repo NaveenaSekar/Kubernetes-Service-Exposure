@@ -228,8 +228,8 @@
               </div>
             </div>
             <div class="task-actions">
-              <label class="task-check">
-                <input type="checkbox" data-action="toggle" data-id="${task.id}" ${
+              <label class="task-check" for="task-toggle-${task.id}">
+                <input id="task-toggle-${task.id}" class="task-toggle" type="checkbox" data-id="${task.id}" ${
           task.status === "completed" ? "checked" : ""
         } />
                 <span>Done</span>
@@ -268,11 +268,27 @@
     const canvas = document.getElementById("task-status-chart");
     if (!canvas || typeof Chart === "undefined") return;
 
-    const { completed, pending } = calculateTotals(tasks);
-    const chartData = [completed, pending];
+    const palette = [
+      "#2563eb",
+      "#16a34a",
+      "#dc2626",
+      "#f59e0b",
+      "#7c3aed",
+      "#06b6d4",
+      "#ec4899",
+      "#84cc16",
+      "#0ea5e9",
+      "#f97316",
+    ];
+
+    const labels = tasks.map((task) => `${task.title} (${task.status})`);
+    const chartData = tasks.map(() => 1);
+    const colors = tasks.map((_, idx) => palette[idx % palette.length]);
 
     if (statusChart) {
+      statusChart.data.labels = labels;
       statusChart.data.datasets[0].data = chartData;
+      statusChart.data.datasets[0].backgroundColor = colors;
       statusChart.update();
       return;
     }
@@ -280,11 +296,11 @@
     statusChart = new Chart(canvas, {
       type: "doughnut",
       data: {
-        labels: ["Completed", "Pending"],
+        labels,
         datasets: [
           {
             data: chartData,
-            backgroundColor: ["#16a34a", "#dc2626"],
+            backgroundColor: colors,
             borderWidth: 0,
           },
         ],
@@ -344,6 +360,8 @@
     const list = document.getElementById("task-list");
     const searchInput = document.getElementById("search-task");
     const filterButtons = document.querySelectorAll("[data-filter]");
+    const today = new Date().toISOString().split("T")[0];
+    dueDate.min = today;
 
     let activeFilter = "all";
     let searchQuery = "";
@@ -377,6 +395,9 @@
       }
       if (!dateValue) {
         dateError.textContent = "Due date is required.";
+        valid = false;
+      } else if (dateValue < today) {
+        dateError.textContent = "Due date cannot be before today.";
         valid = false;
       }
       if (!valid) return;
@@ -419,7 +440,7 @@
 
     list?.addEventListener("change", (event) => {
       const target = event.target;
-      if (!target.matches('input[data-action="toggle"]')) return;
+      if (!target.matches("input.task-toggle")) return;
       const id = target.dataset.id;
       tasks = toggleTaskStatus(id);
       refresh();
