@@ -451,6 +451,19 @@ select:focus {
   gap: 0.45rem;
 }
 
+.task-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: #334155;
+}
+
+.task-check input {
+  width: 14px;
+  height: 14px;
+}
+
 .btn-danger {
   background: var(--danger);
   color: #fff;

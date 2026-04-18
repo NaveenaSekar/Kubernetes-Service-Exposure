@@ -1,7 +1,7 @@
 (() => {
   const AUTH_KEY = "isLoggedIn";
   const USER_KEY = "loginUser";
-  const TASKS_KEY = "tasks";
+  const TASKS_KEY_PREFIX = "tasks";
 
   const page = document.body.dataset.page;
   let statusChart = null;
@@ -12,6 +12,11 @@
 
   function getUsername() {
     return localStorage.getItem(USER_KEY) || "Student";
+  }
+
+  function getUserTaskKey() {
+    const username = getUsername().trim().toLowerCase().replace(/\s+/g, "_");
+    return `${TASKS_KEY_PREFIX}_${username || "student"}`;
   }
 
   function setLogin(identifier) {
@@ -86,7 +91,7 @@
 
   function getTasks() {
     try {
-      const parsed = JSON.parse(localStorage.getItem(TASKS_KEY) || "[]");
+      const parsed = JSON.parse(localStorage.getItem(getUserTaskKey()) || "[]");
       if (!Array.isArray(parsed)) return [];
       return parsed.map((task) => ({
         id: String(task.id ?? Date.now()),
@@ -101,7 +106,7 @@
   }
 
   function saveTasks(tasks) {
-    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+    localStorage.setItem(getUserTaskKey(), JSON.stringify(tasks));
   }
 
   function calculateTotals(tasks) {
@@ -223,10 +228,11 @@
               </div>
             </div>
             <div class="task-actions">
-              <label>
+              <label class="task-check">
                 <input type="checkbox" data-action="toggle" data-id="${task.id}" ${
           task.status === "completed" ? "checked" : ""
         } />
+                <span>Done</span>
               </label>
               <button class="btn btn-danger" data-action="delete" data-id="${task.id}" type="button">
                 <i class="fa-solid fa-trash"></i>
