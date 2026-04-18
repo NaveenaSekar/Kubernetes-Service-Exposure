@@ -340,7 +340,7 @@ select:focus {
 }
 
 .stat-card.warning p {
-  color: var(--warning);
+  color: var(--danger);
 }
 
 .progress-card h3 {
@@ -436,7 +436,13 @@ select:focus {
 }
 
 .status.pending {
-  color: #f97316;
+  color: var(--danger);
+}
+
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 260px;
 }
 
 .task-actions {

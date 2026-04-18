@@ -4,6 +4,7 @@
   const TASKS_KEY = "tasks";
 
   const page = document.body.dataset.page;
+  let statusChart = null;
 
   function isLoggedIn() {
     return localStorage.getItem(AUTH_KEY) === "true";
@@ -85,7 +86,15 @@
 
   function getTasks() {
     try {
-      return JSON.parse(localStorage.getItem(TASKS_KEY) || "[]");
+      const parsed = JSON.parse(localStorage.getItem(TASKS_KEY) || "[]");
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map((task) => ({
+        id: String(task.id ?? Date.now()),
+        title: String(task.title ?? "").trim(),
+        type: String(task.type ?? "Assignment"),
+        dueDate: String(task.dueDate ?? ""),
+        status: String(task.status ?? "pending").toLowerCase() === "completed" ? "completed" : "pending",
+      }));
     } catch (_err) {
       return [];
     }
@@ -97,10 +106,20 @@
 
   function calculateTotals(tasks) {
     const total = tasks.length;
-    const completed = tasks.filter((task) => task.status === "completed").length;
+    const completed = tasks.filter((task) => String(task.status).toLowerCase() === "completed").length;
     const pending = total - completed;
     return { total, completed, pending };
   }
+  function filterTasks(tasks, filter) {
+    if (filter === "all") return tasks;
+    return tasks.filter((task) => task.status === filter);
+  }
+
+  function searchTasks(tasks, query) {
+    if (!query) return tasks;
+    return tasks.filter((task) => task.title.toLowerCase().includes(query.toLowerCase()));
+  }
+
 
   function calculateProgress(tasks) {
     const { total, completed } = calculateTotals(tasks);
@@ -181,13 +200,8 @@
     const empty = document.getElementById("empty-state");
     if (!list || !empty) return;
 
-    let filtered = [...tasks];
-    if (filter !== "all") filtered = filtered.filter((task) => task.status === filter);
-    if (query) {
-      filtered = filtered.filter((task) =>
-        task.title.toLowerCase().includes(query.toLowerCase())
-      );
-    }
+    let filtered = filterTasks([...tasks], filter);
+    filtered = searchTasks(filtered, query);
 
     if (filtered.length === 0) {
       list.innerHTML = "";
@@ -244,9 +258,49 @@
     }
   }
 
+  function renderChart(tasks) {
+    const canvas = document.getElementById("task-status-chart");
+    if (!canvas || typeof Chart === "undefined") return;
+
+    const { completed, pending } = calculateTotals(tasks);
+    const chartData = [completed, pending];
+
+    if (statusChart) {
+      statusChart.data.datasets[0].data = chartData;
+      statusChart.update();
+      return;
+    }
+
+    statusChart = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Completed", "Pending"],
+        datasets: [
+          {
+            data: chartData,
+            backgroundColor: ["#16a34a", "#dc2626"],
+            borderWidth: 0,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom",
+          },
+        },
+      },
+    });
+  }
+
   function addTask(task) {
     const tasks = getTasks();
-    tasks.unshift(task);
+    tasks.unshift({
+      ...task,
+      status: String(task.status).toLowerCase() === "completed" ? "completed" : "pending",
+    });
     saveTasks(tasks);
     return tasks;
   }
@@ -260,9 +314,10 @@
   function toggleTaskStatus(id) {
     const tasks = getTasks().map((task) => {
       if (task.id !== id) return task;
+      const current = String(task.status).toLowerCase() === "completed" ? "completed" : "pending";
       return {
         ...task,
-        status: task.status === "completed" ? "pending" : "completed",
+        status: current === "completed" ? "pending" : "completed",
       };
     });
     saveTasks(tasks);
@@ -287,10 +342,12 @@
     let activeFilter = "all";
     let searchQuery = "";
     let tasks = getTasks();
+    saveTasks(tasks);
 
     const refresh = () => {
       updateDashboard(tasks);
       renderTasks(tasks, activeFilter, searchQuery);
+      renderChart(tasks);
     };
 
     form?.addEventListener("submit", (event) => {
