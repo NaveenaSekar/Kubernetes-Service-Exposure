@@ -234,6 +234,9 @@
         } />
                 <span>Done</span>
               </label>
+              <button class="btn btn-edit" data-action="edit" data-id="${task.id}" type="button">
+                <i class="fa-solid fa-pen"></i>
+              </button>
               <button class="btn btn-danger" data-action="delete" data-id="${task.id}" type="button">
                 <i class="fa-solid fa-trash"></i>
               </button>
@@ -404,6 +407,19 @@
     return tasks;
   }
 
+  function editTask(id, updates) {
+    const tasks = getTasks().map((task) => {
+      if (task.id !== id) return task;
+      return {
+        ...task,
+        ...updates,
+        status: String(updates.status ?? task.status).toLowerCase() === "completed" ? "completed" : "pending",
+      };
+    });
+    saveTasks(tasks);
+    return tasks;
+  }
+
   function toggleTaskStatus(id) {
     const tasks = getTasks().map((task) => {
       if (task.id !== id) return task;
@@ -424,6 +440,7 @@
     const form = document.getElementById("task-form");
     const title = document.getElementById("task-title");
     const type = document.getElementById("task-type");
+    const customType = document.getElementById("custom-task-type");
     const dueDate = document.getElementById("task-due-date");
     const titleError = document.getElementById("task-title-error");
     const typeError = document.getElementById("task-type-error");
@@ -433,6 +450,12 @@
     const filterButtons = document.querySelectorAll("[data-filter]");
     const today = new Date().toISOString().split("T")[0];
     dueDate.min = today;
+
+    type?.addEventListener("change", () => {
+      const isCustom = type.value === "Custom";
+      customType.hidden = !isCustom;
+      if (!isCustom) customType.value = "";
+    });
 
     let activeFilter = "all";
     let searchQuery = "";
@@ -454,6 +477,7 @@
 
       const titleValue = title.value.trim();
       const typeValue = type.value;
+      const customTypeValue = customType.value.trim();
       const dateValue = dueDate.value;
       let valid = true;
 
@@ -463,6 +487,9 @@
       }
       if (!typeValue) {
         typeError.textContent = "Task type is required.";
+        valid = false;
+      } else if (typeValue === "Custom" && !customTypeValue) {
+        typeError.textContent = "Please enter custom task type.";
         valid = false;
       }
       if (!dateValue) {
@@ -477,11 +504,12 @@
       tasks = addTask({
         id: Date.now().toString(),
         title: titleValue,
-        type: typeValue,
+        type: typeValue === "Custom" ? customTypeValue : typeValue,
         dueDate: dateValue,
         status: "pending",
       });
       form.reset();
+      customType.hidden = true;
       refresh();
     });
 
@@ -506,6 +534,30 @@
       const action = target.dataset.action;
       if (action === "delete") {
         tasks = deleteTask(id);
+      } else if (action === "edit") {
+        const current = tasks.find((task) => task.id === id);
+        if (!current) return;
+
+        const nextTitle = window.prompt("Update task title:", current.title);
+        if (nextTitle === null) return;
+        const trimmedTitle = nextTitle.trim();
+        if (!trimmedTitle) return;
+
+        const nextType = window.prompt("Update task type:", current.type);
+        if (nextType === null) return;
+        const trimmedType = nextType.trim();
+        if (!trimmedType) return;
+
+        const nextDate = window.prompt("Update due date (YYYY-MM-DD):", current.dueDate);
+        if (nextDate === null) return;
+        const trimmedDate = nextDate.trim();
+        if (!trimmedDate) return;
+
+        tasks = editTask(id, {
+          title: trimmedTitle,
+          type: trimmedType,
+          dueDate: trimmedDate,
+        });
       }
       refresh();
     });
