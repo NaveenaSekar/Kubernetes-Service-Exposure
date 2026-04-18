@@ -324,11 +324,15 @@
     const pendingTasks = tasks.filter((task) => task.status === "pending");
 
     const makeData = (items, emptyLabel) => {
-      const safe = items.length > 0 ? items : [{ title: emptyLabel }];
+      const hasItems = items.length > 0;
+      const safe = hasItems ? items : [{ title: emptyLabel }];
       return {
         labels: safe.map((task) => task.title),
         values: safe.map(() => 1),
-        colors: safe.map((_, idx) => palette[idx % palette.length]),
+        colors: hasItems
+          ? safe.map((_, idx) => palette[idx % palette.length])
+          : ["rgba(148, 163, 184, 0.22)"],
+        showLegend: hasItems,
       };
     };
 
@@ -350,6 +354,7 @@
       completedChart.data.labels = completedData.labels;
       completedChart.data.datasets[0].data = completedData.values;
       completedChart.data.datasets[0].backgroundColor = completedData.colors;
+      completedChart.options.plugins.legend.display = completedData.showLegend;
       completedChart.update();
     } else {
       completedChart = new Chart(completedCanvas, {
@@ -364,7 +369,16 @@
             },
           ],
         },
-        options: chartOptions,
+        options: {
+          ...chartOptions,
+          plugins: {
+            ...chartOptions.plugins,
+            legend: {
+              ...chartOptions.plugins.legend,
+              display: completedData.showLegend,
+            },
+          },
+        },
       });
     }
 
@@ -372,6 +386,7 @@
       pendingChart.data.labels = pendingData.labels;
       pendingChart.data.datasets[0].data = pendingData.values;
       pendingChart.data.datasets[0].backgroundColor = pendingData.colors;
+      pendingChart.options.plugins.legend.display = pendingData.showLegend;
       pendingChart.update();
     } else {
       pendingChart = new Chart(pendingCanvas, {
@@ -386,7 +401,16 @@
             },
           ],
         },
-        options: chartOptions,
+        options: {
+          ...chartOptions,
+          plugins: {
+            ...chartOptions.plugins,
+            legend: {
+              ...chartOptions.plugins.legend,
+              display: pendingData.showLegend,
+            },
+          },
+        },
       });
     }
   }
@@ -408,14 +432,18 @@
   }
 
   function editTask(id, updates) {
-    const tasks = getTasks().map((task) => {
-      if (task.id !== id) return task;
-      return {
-        ...task,
-        ...updates,
-        status: String(updates.status ?? task.status).toLowerCase() === "completed" ? "completed" : "pending",
-      };
-    });
+    const current = getTasks();
+    const updated = current.find((task) => task.id === id);
+    if (!updated) return current;
+
+    const nextTask = {
+      ...updated,
+      ...updates,
+      status: String(updates.status ?? updated.status).toLowerCase() === "completed" ? "completed" : "pending",
+    };
+
+    const rest = current.filter((task) => task.id !== id);
+    const tasks = [nextTask, ...rest];
     saveTasks(tasks);
     return tasks;
   }
