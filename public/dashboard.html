@@ -43,8 +43,15 @@
 
       <section class="card">
         <h3>Task Status Analytics</h3>
-        <div class="chart-wrap">
-          <canvas id="task-status-chart" aria-label="Completed vs Pending tasks chart"></canvas>
+        <div class="chart-grid">
+          <div class="chart-wrap">
+            <h4>Completed Tasks</h4>
+            <canvas id="completed-chart" aria-label="Completed tasks chart"></canvas>
+          </div>
+          <div class="chart-wrap">
+            <h4>Pending Tasks</h4>
+            <canvas id="pending-chart" aria-label="Pending tasks chart"></canvas>
+          </div>
         </div>
       </section>
 
@@ -87,13 +94,9 @@
             <label for="search-task">Search Task</label>
             <input id="search-task" type="text" placeholder="Search by title..." />
           </div>
+          <div id="task-list" class="task-list"></div>
+          <p id="empty-state" class="empty-state">No tasks found.</p>
         </section>
-      </section>
-
-      <section class="card">
-        <h3>Task List</h3>
-        <div id="task-list" class="task-list"></div>
-        <p id="empty-state" class="empty-state">No tasks found.</p>
       </section>
     </main>
 

@@ -4,7 +4,8 @@
   const TASKS_KEY_PREFIX = "tasks";
 
   const page = document.body.dataset.page;
-  let statusChart = null;
+  let completedChart = null;
+  let pendingChart = null;
 
   function isLoggedIn() {
     return localStorage.getItem(AUTH_KEY) === "true";
@@ -265,56 +266,63 @@
   }
 
   function renderChart(tasks) {
-    const canvas = document.getElementById("task-status-chart");
-    if (!canvas || typeof Chart === "undefined") return;
+    const completedCanvas = document.getElementById("completed-chart");
+    const pendingCanvas = document.getElementById("pending-chart");
+    if (!completedCanvas || !pendingCanvas || typeof Chart === "undefined") return;
 
-    const palette = [
-      "#2563eb",
-      "#16a34a",
-      "#dc2626",
-      "#f59e0b",
-      "#7c3aed",
-      "#06b6d4",
-      "#ec4899",
-      "#84cc16",
-      "#0ea5e9",
-      "#f97316",
-    ];
+    const { completed, pending } = calculateTotals(tasks);
+    const total = completed + pending;
+    const safeTotal = total === 0 ? 1 : total;
 
-    const labels = tasks.map((task) => `${task.title} (${task.status})`);
-    const chartData = tasks.map(() => 1);
-    const colors = tasks.map((_, idx) => palette[idx % palette.length]);
+    const completedData = [completed, safeTotal - completed];
+    const pendingData = [pending, safeTotal - pending];
 
-    if (statusChart) {
-      statusChart.data.labels = labels;
-      statusChart.data.datasets[0].data = chartData;
-      statusChart.data.datasets[0].backgroundColor = colors;
-      statusChart.update();
-      return;
+    const commonOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+      },
+      cutout: "68%",
+    };
+
+    if (completedChart) {
+      completedChart.data.datasets[0].data = completedData;
+      completedChart.update();
+    } else {
+      completedChart = new Chart(completedCanvas, {
+        type: "doughnut",
+        data: {
+          datasets: [
+            {
+              data: completedData,
+              backgroundColor: ["#16a34a", "#e2e8f0"],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: commonOptions,
+      });
     }
 
-    statusChart = new Chart(canvas, {
-      type: "doughnut",
-      data: {
-        labels,
-        datasets: [
-          {
-            data: chartData,
-            backgroundColor: colors,
-            borderWidth: 0,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: "bottom",
-          },
+    if (pendingChart) {
+      pendingChart.data.datasets[0].data = pendingData;
+      pendingChart.update();
+    } else {
+      pendingChart = new Chart(pendingCanvas, {
+        type: "doughnut",
+        data: {
+          datasets: [
+            {
+              data: pendingData,
+              backgroundColor: ["#dc2626", "#e2e8f0"],
+              borderWidth: 0,
+            },
+          ],
         },
-      },
-    });
+        options: commonOptions,
+      });
+    }
   }
 
   function addTask(task) {
