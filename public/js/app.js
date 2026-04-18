@@ -4,8 +4,7 @@
   const TASKS_KEY_PREFIX = "tasks";
 
   const page = document.body.dataset.page;
-  let completedChart = null;
-  let pendingChart = null;
+  let statusChart = null;
 
   function isLoggedIn() {
     return localStorage.getItem(AUTH_KEY) === "true";
@@ -201,13 +200,12 @@
     });
   }
 
-  function renderTasks(tasks, filter, query) {
+  function renderTasks(tasks, _filter, query) {
     const list = document.getElementById("task-list");
     const empty = document.getElementById("empty-state");
     if (!list || !empty) return;
 
-    let filtered = filterTasks([...tasks], filter);
-    filtered = searchTasks(filtered, query);
+    let filtered = searchTasks([...tasks], query);
 
     if (filtered.length === 0) {
       list.innerHTML = "";
@@ -266,63 +264,60 @@
   }
 
   function renderChart(tasks) {
-    const completedCanvas = document.getElementById("completed-chart");
-    const pendingCanvas = document.getElementById("pending-chart");
-    if (!completedCanvas || !pendingCanvas || typeof Chart === "undefined") return;
+    const canvas = document.getElementById("task-status-chart");
+    if (!canvas || typeof Chart === "undefined") return;
 
-    const { completed, pending } = calculateTotals(tasks);
-    const total = completed + pending;
-    const safeTotal = total === 0 ? 1 : total;
+    const palette = [
+      "#2563eb",
+      "#16a34a",
+      "#dc2626",
+      "#f59e0b",
+      "#7c3aed",
+      "#0ea5e9",
+      "#ec4899",
+      "#84cc16",
+      "#14b8a6",
+      "#f97316",
+      "#4f46e5",
+      "#22c55e",
+    ];
 
-    const completedData = [completed, safeTotal - completed];
-    const pendingData = [pending, safeTotal - pending];
+    const safeTasks = tasks.length > 0 ? tasks : [{ title: "No Tasks", status: "pending" }];
+    const labels = safeTasks.map((task) => `${task.title} (${task.status})`);
+    const data = safeTasks.map(() => 1);
+    const colors = safeTasks.map((_, idx) => palette[idx % palette.length]);
 
-    const commonOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
+    if (statusChart) {
+      statusChart.data.labels = labels;
+      statusChart.data.datasets[0].data = data;
+      statusChart.data.datasets[0].backgroundColor = colors;
+      statusChart.update();
+      return;
+    }
+
+    statusChart = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels,
+        datasets: [
+          {
+            data,
+            backgroundColor: colors,
+            borderWidth: 0,
+          },
+        ],
       },
-      cutout: "68%",
-    };
-
-    if (completedChart) {
-      completedChart.data.datasets[0].data = completedData;
-      completedChart.update();
-    } else {
-      completedChart = new Chart(completedCanvas, {
-        type: "doughnut",
-        data: {
-          datasets: [
-            {
-              data: completedData,
-              backgroundColor: ["#16a34a", "#e2e8f0"],
-              borderWidth: 0,
-            },
-          ],
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: "bottom",
+          },
         },
-        options: commonOptions,
-      });
-    }
-
-    if (pendingChart) {
-      pendingChart.data.datasets[0].data = pendingData;
-      pendingChart.update();
-    } else {
-      pendingChart = new Chart(pendingCanvas, {
-        type: "doughnut",
-        data: {
-          datasets: [
-            {
-              data: pendingData,
-              backgroundColor: ["#dc2626", "#e2e8f0"],
-              borderWidth: 0,
-            },
-          ],
-        },
-        options: commonOptions,
-      });
-    }
+      },
+    });
   }
 
   function addTask(task) {
