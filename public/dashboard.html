@@ -106,6 +106,38 @@
         <div id="task-list" class="task-list"></div>
         <p id="empty-state" class="empty-state">No tasks found.</p>
       </section>
+
+      <section id="edit-task-container" class="card" hidden>
+        <h3>Edit Task</h3>
+        <form id="edit-task-form" novalidate>
+          <div class="field">
+            <label for="edit-task-title">Task Title</label>
+            <input id="edit-task-title" type="text" placeholder="Update task title" />
+            <small id="edit-task-title-error" class="error-text"></small>
+          </div>
+          <div class="field">
+            <label for="edit-task-type">Task Type</label>
+            <select id="edit-task-type">
+              <option value="">Select type</option>
+              <option value="Assignment">Assignment</option>
+              <option value="Exam">Exam</option>
+              <option value="Project">Project</option>
+              <option value="Custom">Custom</option>
+            </select>
+            <input id="edit-custom-task-type" type="text" placeholder="Type custom task category" hidden />
+            <small id="edit-task-type-error" class="error-text"></small>
+          </div>
+          <div class="field">
+            <label for="edit-task-due-date">Due Date</label>
+            <input id="edit-task-due-date" type="date" />
+            <small id="edit-task-date-error" class="error-text"></small>
+          </div>
+          <div class="edit-actions">
+            <button class="btn btn-primary" type="submit">Update Task</button>
+            <button id="cancel-edit-btn" class="btn" type="button">Cancel</button>
+          </div>
+        </form>
+      </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

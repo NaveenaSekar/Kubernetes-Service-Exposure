@@ -501,6 +501,12 @@ select:focus {
   background: #b91c1c;
 }
 
+.edit-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
 .empty-state {
   color: var(--muted);
 }

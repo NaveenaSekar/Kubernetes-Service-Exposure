@@ -448,8 +448,19 @@
     const list = document.getElementById("task-list");
     const searchInput = document.getElementById("search-task");
     const filterButtons = document.querySelectorAll("[data-filter]");
+    const editContainer = document.getElementById("edit-task-container");
+    const editForm = document.getElementById("edit-task-form");
+    const editTitle = document.getElementById("edit-task-title");
+    const editType = document.getElementById("edit-task-type");
+    const editCustomType = document.getElementById("edit-custom-task-type");
+    const editDueDate = document.getElementById("edit-task-due-date");
+    const editTitleError = document.getElementById("edit-task-title-error");
+    const editTypeError = document.getElementById("edit-task-type-error");
+    const editDateError = document.getElementById("edit-task-date-error");
+    const cancelEditBtn = document.getElementById("cancel-edit-btn");
     const today = new Date().toISOString().split("T")[0];
     dueDate.min = today;
+    editDueDate.min = today;
 
     type?.addEventListener("change", () => {
       const isCustom = type.value === "Custom";
@@ -457,9 +468,16 @@
       if (!isCustom) customType.value = "";
     });
 
+    editType?.addEventListener("change", () => {
+      const isCustom = editType.value === "Custom";
+      editCustomType.hidden = !isCustom;
+      if (!isCustom) editCustomType.value = "";
+    });
+
     let activeFilter = "all";
     let searchQuery = "";
     let tasks = getTasks();
+    let editingTaskId = null;
     saveTasks(tasks);
 
     const refresh = () => {
@@ -467,6 +485,34 @@
       renderTasks(tasks);
       renderFilteredTasks(tasks, activeFilter, searchQuery);
       renderChart(tasks);
+    };
+
+    const closeEditContainer = () => {
+      editingTaskId = null;
+      editContainer.hidden = true;
+      editForm.reset();
+      editCustomType.hidden = true;
+      editTitleError.textContent = "";
+      editTypeError.textContent = "";
+      editDateError.textContent = "";
+    };
+
+    const openEditContainer = (task) => {
+      editingTaskId = task.id;
+      editTitle.value = task.title;
+      editDueDate.value = task.dueDate;
+      const standardTypes = new Set(["Assignment", "Exam", "Project"]);
+      if (standardTypes.has(task.type)) {
+        editType.value = task.type;
+        editCustomType.hidden = true;
+        editCustomType.value = "";
+      } else {
+        editType.value = "Custom";
+        editCustomType.hidden = false;
+        editCustomType.value = task.type;
+      }
+      editContainer.hidden = false;
+      editContainer.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
     form?.addEventListener("submit", (event) => {
@@ -537,27 +583,7 @@
       } else if (action === "edit") {
         const current = tasks.find((task) => task.id === id);
         if (!current) return;
-
-        const nextTitle = window.prompt("Update task title:", current.title);
-        if (nextTitle === null) return;
-        const trimmedTitle = nextTitle.trim();
-        if (!trimmedTitle) return;
-
-        const nextType = window.prompt("Update task type:", current.type);
-        if (nextType === null) return;
-        const trimmedType = nextType.trim();
-        if (!trimmedType) return;
-
-        const nextDate = window.prompt("Update due date (YYYY-MM-DD):", current.dueDate);
-        if (nextDate === null) return;
-        const trimmedDate = nextDate.trim();
-        if (!trimmedDate) return;
-
-        tasks = editTask(id, {
-          title: trimmedTitle,
-          type: trimmedType,
-          dueDate: trimmedDate,
-        });
+        openEditContainer(current);
       }
       refresh();
     });
@@ -568,6 +594,53 @@
       const id = target.dataset.id;
       tasks = toggleTaskStatus(id);
       refresh();
+    });
+
+    editForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!editingTaskId) return;
+
+      editTitleError.textContent = "";
+      editTypeError.textContent = "";
+      editDateError.textContent = "";
+
+      const titleValue = editTitle.value.trim();
+      const typeValue = editType.value;
+      const customTypeValue = editCustomType.value.trim();
+      const dateValue = editDueDate.value;
+      let valid = true;
+
+      if (!titleValue) {
+        editTitleError.textContent = "Task title is required.";
+        valid = false;
+      }
+      if (!typeValue) {
+        editTypeError.textContent = "Task type is required.";
+        valid = false;
+      } else if (typeValue === "Custom" && !customTypeValue) {
+        editTypeError.textContent = "Please enter custom task type.";
+        valid = false;
+      }
+      if (!dateValue) {
+        editDateError.textContent = "Due date is required.";
+        valid = false;
+      } else if (dateValue < today) {
+        editDateError.textContent = "Due date cannot be before today.";
+        valid = false;
+      }
+      if (!valid) return;
+
+      tasks = editTask(editingTaskId, {
+        title: titleValue,
+        type: typeValue === "Custom" ? customTypeValue : typeValue,
+        dueDate: dateValue,
+      });
+      closeEditContainer();
+      refresh();
+    });
+
+    cancelEditBtn?.addEventListener("click", () => {
+      closeEditContainer();
     });
 
     refresh();
